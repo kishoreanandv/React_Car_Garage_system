@@ -1,124 +1,128 @@
 import "./App.css";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Input from "./components/Input";
+import Table from "./components/Table";
+
+const formFields = [
+  {
+    type: "number",
+    name: "carNumber",
+    id: "carNumber",
+    placeholder: "Car number",
+    label: "Car Number",
+  },
+  {
+    type: "text",
+    name: "driverName",
+    id: "driverName",
+    placeholder: "Driver Name",
+    label: "Driver Name",
+  },
+  {
+    type: "datetime-local",
+    name: "checkIn",
+    id: "checkIn",
+    placeholder: "",
+    label: "Check-In Time",
+  },
+  {
+    type: "datetime-local",
+    name: "checkOut",
+    id: "checkOut",
+    placeholder: "Car number",
+    label: "Check-Out Time",
+  },
+];
+
+const AVAILABLE_VEHICLE_IN_GARAGE_COLUMS = [
+  {
+    name: "Car Number",
+    key: "carNumber",
+  },
+  {
+    name: "Driver",
+    key: "driverName",
+  },
+];
+
+const ALL_VEHICLE_COLUMS = [
+  ...AVAILABLE_VEHICLE_IN_GARAGE_COLUMS,
+  {
+    name: "Check In",
+    key: "checkIn",
+  },
+  {
+    name: "Check Out",
+    key: "checkOut",
+  },
+];
+const initialState = {
+  carNumber: "",
+  driverName: "",
+  checkIn: "",
+  checkOut: "",
+};
 
 function App() {
-  const [inputdata, SetInputData] = useState({
-    carnumber: "",
-    drivername: "",
-    checkin: "",
-    checkout: "",
-  });
+  const [inputData, setInputData] = useState(initialState);
 
-  const [arrdata, setArrData] = useState([]);
-  function handleChange(e) {
-    SetInputData({
-      ...inputdata,
-      [e.target.name]: e.target.value,
+  const [allVehicleData, setAllVehicleData] = useState([]);
+
+  const handleChange = (e, name) => {
+    setInputData({
+      ...inputData,
+      [name]: e.target.value,
     });
-  }
-  let { carnumber, drivername, checkin, checkout } = inputdata;
-  function pushdata() {
-    setArrData([...arrdata, { carnumber, drivername, checkin, checkout }]);
-    SetInputData({ carnumber: "", drivername: "", checkin: "", checkout: "" });
-  }
+  };
+
+  const pushdata = (e) => {
+    e.preventDefault();
+    setAllVehicleData([...allVehicleData, ...[inputData]]);
+    setInputData(initialState);
+  };
+
+  const availableVehicles = useMemo(() => {
+    return allVehicleData.filter((x) => x.checkOut === "");
+  }, [allVehicleData]);
+
   return (
     <div className="App">
       <div className="heading">
         <h1> CAR PARKING SYSTEM 🚗 </h1>
       </div>
       <div className="container">
-        <div className="inputdetails">
-          <div>
-            <label for="carnumber"> Car Number : </label>
-            <input
-              type="number"
-              minLength={4}
-              maxLength={4}
-              name="carnumber"
-              id="carnumber"
-              value={inputdata.carno}
-              placeholder="Enter last 4 no.."
-              onChange={handleChange}
+        <form className="inputdetails">
+          {formFields.map(({ label, placeholder, name, id, type }) => (
+            <Input
+              label={label}
+              placeholder={placeholder}
+              name={name}
+              id={id}
+              type={type}
+              value={inputData[name]}
+              onChange={(e) => handleChange(e, name)}
+              key={id}
             />
-          </div>
-
-          <div>
-            <label for="drivername"> Driver Name : </label>
-            <input
-              type="text"
-              value={inputdata.drivername}
-              name="drivername"
-              id="drivername"
-              placeholder="Driver name.."
-              onChange={handleChange}
-            />
-          </div>
-          <div>
-            <label for="checkin"> CheckIn Time : </label>
-            <input
-              type="datetime-local"
-              name="checkin"
-              value={inputdata.checkin}
-              onChange={handleChange}
-            />
-          </div>
-          <div>
-            <label for="checkout"> CheckOut Time : </label>
-            <input
-              type="datetime-local"
-              name="checkout"
-              id="checkout"
-              value={inputdata.checkout}
-              onChange={handleChange}
-            />
-          </div>
+          ))}
           <div>
             <button onClick={pushdata}> SUBMIT </button>
           </div>
-        </div>
+        </form>
 
         <br></br>
         <br></br>
-        <h2>AVAILABLE CARS IN GARAGE</h2>
-        <table width="70%" cellPadding={15}>
-          <tbody>
-            <tr>
-              <td> CAR NUMBER</td>
-              <td> DRIVER </td>
-            </tr>
-            {arrdata.map((info, index) => {
-              if (info.checkout === "") {
-                return (
-                  <tr key={index}>
-                    <td>{info.carnumber}</td>
-                    <td>{info.drivername}</td>
-                  </tr>
-                );
-              }
-            })}
-          </tbody>
-        </table>
-        <h2> ALL VEHICLE DETAILS </h2>
-        <table width="70%" cellPadding={15}>
-          <tbody>
-            <tr>
-              <td> CAR NUMBER</td>
-              <td> DRIVER </td>
-              <td> CHECK IN </td>
-              <td> CHECK OUT</td>
-            </tr>
-            {arrdata.map((info, index) => {
-              return (
-                <tr key={index}>
-                  <td>{info.carnumber}</td>
-                  <td>{info.drivername}</td>
-                  <td>{info.checkin}</td>
-                  <td>{info.checkout}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <Table
+          data={availableVehicles}
+          heading="AVAILABLE CARS IN GARAGE"
+          columns={AVAILABLE_VEHICLE_IN_GARAGE_COLUMS}
+        />
+
+        <Table
+          data={allVehicleData}
+          heading="ALL VEHICLE DETAILS"
+          columns={ALL_VEHICLE_COLUMS}
+        />
+
         <br></br>
         <br></br>
       </div>
